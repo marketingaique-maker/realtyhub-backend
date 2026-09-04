@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add Vehicle | Realty Hub Admin</title><meta name="robots" content="noindex,nofollow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/css/style.css"></head>
+<body data-admin-page="vehicle-form">
+<div class="admin-shell">
+<aside class="admin-sidebar" data-admin-sidebar>
+  <div class="admin-brand"><img src="../assets/images/realtyhub-logo.png" alt="Realty Hub logo"><div><strong>REALTY HUB</strong><small>Admin Portal</small></div></div>
+  <nav class="admin-nav" aria-label="Admin navigation">
+    <a href="dashboard.html" data-icon="⌂"><span>Dashboard</span></a>
+    <a href="properties.html" data-icon="▦"><span>Properties</span></a>
+    <a href="vehicles.html" data-icon="◇"><span>Vehicles</span></a>
+    <a href="inquiries.html" data-icon="✉"><span>Inquiries</span></a>
+    <a href="testimonials.html" data-icon="☆"><span>Testimonials</span></a>
+    <a href="blog.html" data-icon="▤"><span>Blog</span></a>
+    <a href="featured.html" data-icon="★"><span>Featured</span></a>
+    <a href="categories.html" data-icon="☷"><span>Categories</span></a><a href="profile.html" data-icon="●"><span>Admin Profile</span></a>
+  </nav>
+  <div class="admin-user">
+    <div class="admin-avatar">A</div>
+    <div><strong>Admin User</strong><small>Super Admin</small></div>
+    <button class="icon-btn" data-logout title="Logout">↪</button>
+  </div>
+</aside>
+<main class="admin-main">
+<header class="admin-top">
+  <div class="admin-title"><button class="menu-btn" data-admin-menu aria-label="Open admin menu">☰</button><div><h1>Add Vehicle</h1><span class="meta">Realty Hub management portal</span></div></div>
+  <div class="admin-top-actions"><a class="btn btn-outline hide-mobile" href="../index.html">↗ Live Site</a></div>
+</header>
+<section class="admin-content">
+<form class="admin-form-card" data-vehicle-form>
+<div class="form-section"><div class="form-section-head"><div><h2>Vehicle Information</h2><p class="meta">Add all specifications needed for the vehicle card and detail page.</p></div><a class="btn btn-outline" href="vehicles.html">Cancel</a></div>
+<div class="form-grid">
+<div class="field form-full"><label>Vehicle Name *</label><input name="title" required placeholder="Apex Electra Pro"></div>
+<div class="field"><label>Vehicle Type</label><select name="type"><option>SUV/MUV</option><option>Sedan</option><option>Hatchback</option><option>Bike/Scooter</option></select></div>
+<div class="field"><label>Brand / Model</label><input name="brand" placeholder="Apex / Electra Pro"></div>
+<div class="field"><label>Price *</label><input name="price" required placeholder="₹24,50,000"></div>
+<div class="field"><label>Year</label><input name="year" type="number" value="2026"></div>
+<div class="field"><label>Fuel</label><select name="fuel"><option>Electric</option><option>Petrol</option><option>Diesel</option><option>Hybrid</option></select></div>
+<div class="field"><label>Transmission</label><select name="transmission"><option>Automatic</option><option>Manual</option><option>Single Speed</option></select></div>
+<div class="field"><label>Power</label><input name="power" placeholder="520 hp"></div>
+<div class="field"><label>Status</label><select name="status"><option>Published</option><option>Draft</option><option>Sold</option></select></div>
+<div class="field form-full"><label>Specifications</label><textarea name="specifications" rows="5" placeholder="Range, torque, seating, dimensions and other key specifications..."></textarea></div>
+<div class="field form-full" data-existing-gallery hidden><label>Current Images</label><p class="meta">Click × to remove a photo. New photos you upload below are added to this vehicle's existing gallery.</p><div class="image-preview" data-existing-images></div></div>
+<div class="field form-full"><label>Vehicle Images</label><div class="upload-zone"><input name="images" type="file" accept="image/*" multiple><div><strong>Upload multiple images</strong><span>Select one or more JPG, PNG or WEBP photos. When creating a vehicle, the first photo becomes the main image. When editing a vehicle, new photos are added to the existing gallery. There is no maximum number of photos.</span></div></div><div class="image-preview" data-image-preview></div></div>
+</div></div>
+<div class="form-section"><div class="toggle-row"><div><strong>Featured Vehicle</strong><small>Show this vehicle in featured transport sections.</small></div><label class="switch"><input name="featured" type="checkbox"><span></span></label></div></div>
+<div class="form-actions"><a class="btn btn-outline" href="vehicles.html">Discard</a><button class="btn btn-primary" type="submit">Save Vehicle</button></div>
+</form></section>
+</main></div><script src="../assets/js/main.js"></script></body></html>

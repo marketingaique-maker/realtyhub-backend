@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blog Editor | Realty Hub Admin</title><meta name="robots" content="noindex,nofollow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/css/style.css"></head>
+<body data-admin-page="blog-editor">
+<div class="admin-shell">
+<aside class="admin-sidebar" data-admin-sidebar>
+  <div class="admin-brand"><img src="../assets/images/realtyhub-logo.png" alt="Realty Hub logo"><div><strong>REALTY HUB</strong><small>Admin Portal</small></div></div>
+  <nav class="admin-nav" aria-label="Admin navigation">
+    <a href="dashboard.html" data-icon="⌂"><span>Dashboard</span></a>
+    <a href="properties.html" data-icon="▦"><span>Properties</span></a>
+    <a href="vehicles.html" data-icon="◇"><span>Vehicles</span></a>
+    <a href="inquiries.html" data-icon="✉"><span>Inquiries</span></a>
+    <a href="testimonials.html" data-icon="☆"><span>Testimonials</span></a>
+    <a href="blog.html" data-icon="▤"><span>Blog</span></a>
+    <a href="featured.html" data-icon="★"><span>Featured</span></a>
+    <a href="categories.html" data-icon="☷"><span>Categories</span></a><a href="profile.html" data-icon="●"><span>Admin Profile</span></a>
+  </nav>
+  <div class="admin-user">
+    <div class="admin-avatar">A</div>
+    <div><strong>Admin User</strong><small>Super Admin</small></div>
+    <button class="icon-btn" data-logout title="Logout">↪</button>
+  </div>
+</aside>
+<main class="admin-main">
+<header class="admin-top">
+  <div class="admin-title"><button class="menu-btn" data-admin-menu aria-label="Open admin menu">☰</button><div><h1>Blog Editor</h1><span class="meta">Realty Hub management portal</span></div></div>
+  <div class="admin-top-actions"><a class="btn btn-outline hide-mobile" href="../index.html">↗ Live Site</a></div>
+</header>
+<section class="admin-content">
+<form class="admin-form-card" data-blog-form>
+<div class="form-section"><div class="form-section-head"><div><h2>Post Content</h2><p class="meta">Use this editor to prepare publish-ready content.</p></div><a class="btn btn-outline" href="blog.html">Cancel</a></div>
+<div class="form-grid"><div class="field form-full"><label>Post Title *</label><input name="title" required placeholder="10 Trends Shaping Luxury Real Estate"></div><div class="field"><label>Category</label><select name="category"><option>Market Insights</option><option>Buying Guides</option><option>Lifestyle</option><option>Vehicles</option></select></div><div class="field"><label>Status</label><select name="status"><option>Published</option><option>Draft</option><option>Scheduled</option></select></div><div class="field form-full"><label>Tags</label><input name="tags" placeholder="luxury, real estate, kerala, 2026"></div><div class="field form-full"><label>Excerpt</label><textarea name="excerpt" rows="3" placeholder="Short summary shown in blog cards and search results..."></textarea></div><div class="field form-full"><label>Content</label><div class="rich-editor"><div class="editor-toolbar"><button type="button"><strong>B</strong></button><button type="button"><em>I</em></button><button type="button">H2</button><button type="button">• List</button><button type="button">↗ Link</button></div><textarea name="content" rows="14" placeholder="Write article content here..."></textarea></div></div><div class="field form-full"><label>Featured Image</label><div class="upload-zone"><input name="image" type="file" accept="image/*"><div><strong>Choose featured image</strong><span>Used on the public blog card</span></div></div><div class="image-preview" data-image-preview></div></div></div></div>
+<div class="form-section"><h2>SEO Settings</h2><div class="form-grid"><div class="field"><label>SEO Title</label><input name="seoTitle"></div><div class="field"><label>Meta Description</label><input name="metaDescription"></div></div></div>
+<div class="form-actions"><a class="btn btn-outline" href="blog.html">Discard</a><button class="btn btn-primary" type="submit">Publish / Save Draft</button></div>
+</form></section>
+</main></div><script src="../assets/js/main.js"></script></body></html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add Property | Realty Hub Admin</title><meta name="robots" content="noindex,nofollow"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="../assets/css/style.css"></head>
+<body data-admin-page="property-form">
+<div class="admin-shell">
+<aside class="admin-sidebar" data-admin-sidebar>
+  <div class="admin-brand"><img src="../assets/images/realtyhub-logo.png" alt="Realty Hub logo"><div><strong>REALTY HUB</strong><small>Admin Portal</small></div></div>
+  <nav class="admin-nav" aria-label="Admin navigation">
+    <a href="dashboard.html" data-icon="⌂"><span>Dashboard</span></a>
+    <a href="properties.html" data-icon="▦"><span>Properties</span></a>
+    <a href="vehicles.html" data-icon="◇"><span>Vehicles</span></a>
+    <a href="inquiries.html" data-icon="✉"><span>Inquiries</span></a>
+    <a href="testimonials.html" data-icon="☆"><span>Testimonials</span></a>
+    <a href="blog.html" data-icon="▤"><span>Blog</span></a>
+    <a href="featured.html" data-icon="★"><span>Featured</span></a>
+    <a href="categories.html" data-icon="☷"><span>Categories</span></a><a href="profile.html" data-icon="●"><span>Admin Profile</span></a>
+  </nav>
+  <div class="admin-user">
+    <div class="admin-avatar">A</div>
+    <div><strong>Admin User</strong><small>Super Admin</small></div>
+    <button class="icon-btn" data-logout title="Logout">↪</button>
+  </div>
+</aside>
+<main class="admin-main">
+<header class="admin-top">
+  <div class="admin-title"><button class="menu-btn" data-admin-menu aria-label="Open admin menu">☰</button><div><h1>Add Property</h1><span class="meta">Realty Hub management portal</span></div></div>
+  <div class="admin-top-actions"><a class="btn btn-outline hide-mobile" href="../index.html">↗ Live Site</a></div>
+</header>
+<section class="admin-content">
+<form class="admin-form-card" data-property-form>
+  <div class="form-section"><div class="form-section-head"><div><h2>Property Information</h2><p class="meta">Create a complete listing using the same clean form pattern as the public site.</p></div><a class="btn btn-outline" href="properties.html">Cancel</a></div>
+    <div class="form-grid">
+      <div class="field form-full"><label>Property Title *</label><input name="title" required placeholder="e.g. Grand Horizon Villa"></div>
+      <div class="field"><label>Property Category *</label><select name="category" required><option value="" selected disabled>Select property type</option><option>Land / Plot</option><option>Villa / Apartment</option><option>Rental House / Apartment</option></select></div>
+      <div class="field"><label>Listing Type</label><select name="listingType"><option>Sale</option><option>Rent</option></select></div>
+      <div class="field"><label>Price *</label><input name="price" required placeholder="₹1,62,50,000"></div>
+      <div class="field"><label>Location *</label><input name="location" required placeholder="Thiruvananthapuram, Kerala"></div>
+      <div class="field"><label>Bedrooms</label><input name="bedrooms" type="number" min="0" placeholder="4"></div>
+      <div class="field"><label>Bathrooms</label><input name="bathrooms" type="number" min="0" placeholder="4"></div>
+      <div class="field"><label>Area</label><input name="area" placeholder="4,200 sq.ft"></div>
+      <div class="field"><label>Status</label><select name="status"><option>Published</option><option>Draft</option><option>Sold</option><option>Rented</option></select></div>
+      <div class="field form-full"><label>Amenities</label><input name="amenities" placeholder="Swimming Pool, Garden, Parking, Security, Gym"></div>
+      <div class="field form-full"><label>Description</label><textarea name="description" rows="6" placeholder="Describe the property, surroundings and key selling points..."></textarea></div>
+      <div class="field form-full" data-existing-gallery hidden><label>Current Images</label><p class="meta">Click × to remove a photo. New photos you upload below are added to this property's existing gallery.</p><div class="image-preview" data-existing-images></div></div>
+      <div class="field form-full"><label>Property Images</label><div class="upload-zone"><input name="images" type="file" accept="image/*" multiple><div><strong>Upload multiple images</strong><span>Select one or more JPG, PNG or WEBP photos. When creating a property, the first photo becomes the main image. When editing a property, new photos are added to the existing gallery. There is no maximum number of photos.</span></div></div><div class="image-preview" data-image-preview></div></div>
+    </div>
+  </div>
+  <div class="form-section"><div class="toggle-row"><div><strong>Featured on Home Page</strong><small>Show this property in the featured carousel.</small></div><label class="switch"><input name="featured" type="checkbox"><span></span></label></div></div>
+  <div class="form-actions"><a class="btn btn-outline" href="properties.html">Discard</a><button class="btn btn-primary" type="submit">Save Property</button></div>
+</form></section>
+</main></div><script src="../assets/js/main.js"></script></body></html>

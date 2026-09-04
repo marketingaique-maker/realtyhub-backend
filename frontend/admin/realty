@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Profile | Realty Hub Admin</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="../assets/css/style.css"></head>
+<body data-admin-page="profile">
+<div class="admin-shell">
+<aside class="admin-sidebar" data-admin-sidebar>
+  <div class="admin-brand"><img src="../assets/images/realtyhub-logo.png" alt=""><div><strong>REALTY HUB</strong><small>Admin Portal</small></div></div>
+  <nav class="admin-nav" aria-label="Admin navigation">
+    <a href="dashboard.html" data-icon="⌂"><span>Dashboard</span></a>
+    <a href="properties.html" data-icon="▦"><span>Properties</span></a>
+    <a href="vehicles.html" data-icon="◇"><span>Vehicles</span></a>
+    <a href="inquiries.html" data-icon="✉"><span>Inquiries</span></a>
+    <a href="testimonials.html" data-icon="☆"><span>Testimonials</span></a>
+    <a href="blog.html" data-icon="▤"><span>Blog</span></a>
+    <a href="featured.html" data-icon="★"><span>Featured</span></a>
+    <a href="categories.html" data-icon="☷"><span>Categories</span></a><a href="profile.html" data-icon="●"><span>Admin Profile</span></a>
+  </nav>
+  <div class="admin-user">
+    <div class="admin-avatar">A</div>
+    <div><strong>Admin User</strong><small>Super Admin</small></div>
+    <button class="icon-btn" data-logout title="Logout">↪</button>
+  </div>
+</aside>
+<main class="admin-main">
+<header class="admin-top">
+  <div class="admin-title"><button class="menu-btn" data-admin-menu aria-label="Open admin menu">☰</button><div><h1>Admin Profile</h1><span class="meta">Realty Hub management portal</span></div></div>
+  <div class="admin-top-actions"><a class="btn btn-outline hide-mobile" href="../index.html">↗ Live Site</a></div>
+</header>
+<section class="admin-content">
+<div class="profile-grid"><section class="admin-panel"><div class="admin-panel-head"><div><h2>Admin Profile</h2><p class="meta">Manage the profile displayed in the admin sidebar.</p></div></div>
+<form class="form-grid" data-profile-form><div class="field"><label>Full Name</label><input name="name" placeholder="Your full name"></div><div class="field"><label>Email</label><input name="email" type="email" placeholder="you@company.com"></div><div class="field"><label>Phone</label><input name="phone" placeholder="+91 00000 00000"></div><div class="field"><label>Role</label><input value="Super Admin" disabled></div><div class="field"><label>New Password</label><input name="password" type="password" placeholder="Leave blank to keep current password" minlength="8"></div><div class="field"><label>Confirm Password</label><input name="confirmPassword" type="password" placeholder="Re-enter new password"></div><div class="form-actions form-full"><button class="btn btn-primary" type="submit">Save Profile</button></div></form></section>
+<section class="admin-panel security-panel"><div class="admin-panel-head"><div><h2>Security</h2><p class="meta">Static frontend mode</p></div></div><div class="security-item"><span class="security-icon">✓</span><div><strong>Admin portal protected by login screen</strong><small>No default password ships with this build — the account is created on first visit to the login page. Connect the login form to real server-side authentication (Django JWT/session) for production security.</small></div></div><div class="security-item"><span class="security-icon">✓</span><div><strong>Role-ready navigation</strong><small>Backend permissions can be mapped to each admin module.</small></div></div></section></div></section>
+</main></div><script src="../assets/js/main.js"></script></body></html>
