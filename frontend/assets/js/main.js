@@ -13,7 +13,7 @@ const SOCIALS={
    Django REST Framework backend that ships alongside this site. The API is
    served from the SAME Django project that serves this HTML/CSS/JS, so all
    requests are same-origin, relative paths like /api/properties/. */
-const API_BASE='/api';
+const API_BASE = 'https://api.realtyhub.co.in/api';
 const AUTH_KEY='rh_admin'; /* holds the DRF auth token once an admin logs in */
 
 function getToken(){try{return sessionStorage.getItem(AUTH_KEY);}catch(e){return null;}}

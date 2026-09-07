@@ -184,3 +184,17 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 1. The URL prefix used to access static files (e.g., ://domain.com)
+STATIC_URL = 'static/'
+
+# 2. Additional custom folders where you keep static files (like a global layout folder)
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# 3. The DESTINATION folder where collectstatic will dump everything for production
+#    CRITICAL: This must be a clean folder. Do NOT put your raw project files here.
+STATIC_ROOT = BASE_DIR / "staticfiles"
