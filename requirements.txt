@@ -3,3 +3,11 @@ django-cors-headers==4.9.0
 django-filter==26.1
 djangorestframework==3.18.0
 pillow==12.3.0
+gunicorn
+whitenoise
+dj-database-url
+psycopg2-binary
+cloudinary
+django-cloudinary-storage
+sqlparse
+tzdata
