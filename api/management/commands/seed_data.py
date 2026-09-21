@@ -112,27 +112,27 @@ class Command(BaseCommand):
             return
         rows = [
             dict(title="AeroStream City Hatch", type="Hatchback", brand="AeroStream", year=2026,
-                 price="\u20b98,25,000", fuel="Petrol", transmission="Manual", power="90 hp", range="\u2014",
+                 price="\u20b98,25,000", fuel="Petrol", transmission="Manual", power="90 hp", odometer="18,000 km", range="\u2014",
                  status="Published", featured=False, drivetrain="1.2L Petrol \u00b7 FWD",
                  specifications="A compact, fuel-efficient hatchback built for city driving, with a peppy engine, "
                                 "tight turning radius and a spacious cabin for everyday commutes."),
             dict(title="Apex Electra Concept SUV", type="SUV/MUV", brand="Apex Electra", year=2026,
-                 price="\u20b918,49,000", fuel="Electric", transmission="Automatic", power="480 hp",
+                 price="\u20b918,49,000", fuel="Electric", transmission="Automatic", power="480 hp", odometer="12,500 km",
                  range="310 mi", status="Published", featured=True, drivetrain="Dual-Motor Electric \u00b7 AWD",
                  specifications="A high-performance electric concept SUV with premium cabin technology and one of "
                                 "the longest ranges in its class."),
             dict(title="AeroStream Sport GT", type="Sedan", brand="AeroStream", year=2026, price="\u20b916,25,000",
-                 fuel="Petrol", transmission="Automatic", power="480 hp", range="310 mi", status="Published",
+                 fuel="Petrol", transmission="Automatic", power="480 hp", odometer="9,800 km", range="310 mi", status="Published",
                  featured=True, drivetrain="3.0L Turbocharged I6",
                  specifications="A sharp-handling sport GT built for spirited touring, with a turbocharged "
                                 "inline-six and a driver-focused cabin."),
             dict(title="Ion Electric Cruiser", type="SUV/MUV", brand="Ion Motors", year=2025, price="\u20b922,00,000",
-                 fuel="Electric", transmission="Automatic", power="380 hp", range="300 mi", status="Published",
+                 fuel="Electric", transmission="Automatic", power="380 hp", odometer="22,000 km", range="300 mi", status="Published",
                  featured=False,
                  specifications="A family-focused electric crossover with three-row seating and best-in-class "
                                 "cargo space."),
             dict(title="Vanguard Volt Scooter", type="Bike/Scooter", brand="Vanguard", year=2026,
-                 price="\u20b91,45,000", fuel="Electric", transmission="Automatic", power="8 hp", range="120 km",
+                 price="\u20b91,45,000", fuel="Electric", transmission="Automatic", power="8 hp", odometer="3,200 km", range="120 km",
                  status="Published", featured=False,
                  specifications="A zippy electric scooter with a swappable battery pack, ideal for quick city "
                                 "commutes and low running costs."),

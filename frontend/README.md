@@ -47,3 +47,9 @@ python -m http.server 8000
 ```
 
 Then visit `http://localhost:8000/`.
+
+
+## Design system note
+`assets/css/style.css` now starts with the Realty Hub design tokens (Inter type scale, spacing, radius, colours).
+See the "UI review pass" section in the project-level `README.md` for the full table. Do not add raw font sizes
+in components — use the `--text-*` tokens / `.text-*` utilities.

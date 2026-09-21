@@ -208,3 +208,41 @@ On the public `property-details.html?id=<property-id>` page:
 - The gallery shows the total uploaded image count.
 
 The same Django `PropertyImage` table and `/api/properties/<id>/` response are used, so the uploaded gallery remains attached to the correct property and is preserved in the database.
+
+---
+
+## UI review pass (REALTYHUB UI EVALUATION) — what changed
+
+> The **Blog** (public blog pages, the *Latest from Our Blog* section on Home, and the admin blog module)
+> was intentionally left untouched. Only the shared header/footer and the global type tokens reach those pages.
+
+### After pulling this update
+```bash
+python manage.py migrate      # adds Vehicle.odometer + seeds the House / Villa / Apartment / Commercial categories
+```
+Then enter an **Odometer** value (e.g. `45,000 km`) for each vehicle in *Admin → Vehicles → Edit*.
+(`Vehicle.power` is kept in the database for backward compatibility but is no longer shown anywhere.)
+
+### Design system (`frontend/assets/css/style.css`, top of file)
+| Area | Token(s) |
+|---|---|
+| Font | Inter variable font, **self-hosted** in `frontend/assets/fonts/` (no Google Fonts request) |
+| Type scale (size / line-height) | H1 48/56 Bold · H2 36/44 Bold · H3 28/36 SemiBold · H4 22/30 SemiBold · Body Large 18/28 · Body 16/24 · Small 14/20 · Caption 12/16 (`--text-*`, `--lh-*`, `.text-*`) |
+| Buttons | Large 16/24 · Default 14/20 · Small 12/16 — Inter Medium (`.btn-lg`, `.btn`, `.btn-sm`) |
+| Container | `--container: 1200px`, `--gutter: 24px` (16px on mobile) |
+| Spacing | `--space-1 … --space-9` (4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 80) |
+| Radius | `--radius-sm 4` · `md 8` · `lg 12` · `pill` |
+| Colour | `--color-navy`, `--color-teal`, `--color-surface(-alt)`, `--color-border`, `--color-text(-muted)`, `--color-success/danger/warning` |
+| Forms | 48px controls, 20px icons, label 14/20 Medium, value 16/24, 2px teal focus, inline validation |
+| Cards | `.card-listing` (`.card-property`, `.card-vehicle`), `.card-testimonial`, `.feature-info` |
+
+Responsive behaviour is documented in the comment above the media queries at the bottom of `style.css`
+(desktop ≥1101 · tablet ≤1100 · nav collapses ≤900 · mobile ≤720 where the type scale steps down).
+
+### Shared header / footer
+The header and footer used to be copy-pasted (and had drifted apart) on every page. They now come from one
+template: edit `tools/sync_chrome.py`, run `python tools/sync_chrome.py`, and every page is updated.
+
+### Form validation
+Public enquiry / visit / contact forms and the login form no longer use the browser's native validation
+bubble. `initFormValidation()` in `main.js` shows inline messages, a red field state and a teal ✓ when valid.

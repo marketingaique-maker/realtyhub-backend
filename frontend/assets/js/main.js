@@ -13,7 +13,7 @@ const SOCIALS={
    Django REST Framework backend that ships alongside this site. The API is
    served from the SAME Django project that serves this HTML/CSS/JS, so all
    requests are same-origin, relative paths like /api/properties/. */
-const API_BASE = 'https://api.realtyhub.co.in/api';
+const API_BASE='/api';
 const AUTH_KEY='rh_admin'; /* holds the DRF auth token once an admin logs in */
 
 function getToken(){try{return sessionStorage.getItem(AUTH_KEY);}catch(e){return null;}}
@@ -229,7 +229,7 @@ if(menu&&nav)menu.addEventListener('click',()=>{nav.classList.toggle('open');men
 
 const current=location.pathname.split('/').pop()||'index.html';
 if(document.body.dataset.adminPage && typeof sessionStorage!=='undefined' && !sessionStorage.getItem(AUTH_KEY)){location.href='../login.html';}
-document.querySelectorAll('.nav-links a').forEach(a=>{if(a.getAttribute('href')===current)a.classList.add('active');});
+document.querySelectorAll('.nav-links>a,.nav-dropdown>a').forEach(a=>{if(a.getAttribute('href')===current)a.classList.add('active');});
 document.querySelectorAll('.admin-nav a').forEach(a=>{
  if(a.getAttribute('href')===current||a.getAttribute('href').endsWith('/'+current))a.classList.add('active');
 });
@@ -244,7 +244,7 @@ document.querySelectorAll('[data-logout]').forEach(b=>b.addEventListener('click'
 }));
 
 document.querySelectorAll('[data-search-mode]').forEach(btn=>btn.addEventListener('click',()=>{
- document.querySelectorAll('[data-search-mode]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+ document.querySelectorAll('[data-search-mode]').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});btn.classList.add('active');btn.setAttribute('aria-selected','true');
  const mode=btn.dataset.searchMode;
  const form=btn.closest('form');if(!form)return;
  const hidden=form.querySelector('input[name="listing_type"]');
@@ -259,18 +259,50 @@ document.querySelectorAll('[data-search-mode]').forEach(btn=>btn.addEventListene
  });
 }));
 
-/* Nav dropdown: tap-to-toggle on touch/mobile (desktop uses CSS hover) */
-document.addEventListener('click',e=>{
- const caret=e.target.closest('.dropdown-caret');
- if(caret){
-  e.preventDefault();
-  const wrap=caret.closest('.nav-dropdown');
-  document.querySelectorAll('.nav-dropdown.mobile-open').forEach(el=>{if(el!==wrap)el.classList.remove('mobile-open');});
-  wrap.classList.toggle('mobile-open');
-  return;
- }
- if(!e.target.closest('.nav-dropdown'))document.querySelectorAll('.nav-dropdown.mobile-open').forEach(el=>el.classList.remove('mobile-open'));
-});
+/* Nav dropdowns (Properties / Vehicles).
+   Desktop: opens on hover, click on the caret pins it open. Touch / mobile menu: tap the caret to toggle.
+   The panel is always positioned under the header bar (see .dropdown-panel) so it can never overlap the navbar. */
+(function initNavDropdowns(){
+ const dropdowns=Array.from(document.querySelectorAll('.nav-dropdown'));
+ if(!dropdowns.length)return;
+ const hoverMode=window.matchMedia('(min-width:901px) and (hover:hover)');
+ const timers=new WeakMap();
+ const setOpen=(dd,open)=>{
+  dd.classList.toggle('is-open',open);
+  if(!open)delete dd.dataset.pinned;
+  const caret=dd.querySelector('.dropdown-caret');
+  if(caret)caret.setAttribute('aria-expanded',String(open));
+ };
+ const closeAll=except=>dropdowns.forEach(d=>{if(d!==except)setOpen(d,false);});
+ dropdowns.forEach(dd=>{
+  dd.addEventListener('mouseenter',()=>{if(!hoverMode.matches)return;clearTimeout(timers.get(dd));closeAll(dd);setOpen(dd,true);});
+  dd.addEventListener('mouseleave',()=>{if(!hoverMode.matches||dd.dataset.pinned)return;timers.set(dd,setTimeout(()=>setOpen(dd,false),120));});
+ });
+ document.addEventListener('click',e=>{
+  const caret=e.target.closest('.dropdown-caret');
+  if(caret){
+   e.preventDefault();
+   const dd=caret.closest('.nav-dropdown');
+   if(hoverMode.matches){
+    /* opened by hover: first click pins it, next click closes it */
+    if(dd.classList.contains('is-open')&&!dd.dataset.pinned){dd.dataset.pinned='1';closeAll(dd);return;}
+    const willOpen=!dd.classList.contains('is-open');
+    closeAll(dd);setOpen(dd,willOpen);if(willOpen)dd.dataset.pinned='1';
+   }else{
+    const willOpen=!dd.classList.contains('is-open');
+    closeAll(dd);setOpen(dd,willOpen);
+   }
+   return;
+  }
+  if(!e.target.closest('.nav-dropdown'))closeAll();
+ });
+ document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const open=document.querySelector('.nav-dropdown.is-open');
+  closeAll();
+  if(open){const c=open.querySelector('.dropdown-caret');if(c)c.focus();}
+ });
+})();
 
 /* Contact page: prefill Subject/Interest from ?subject= (used by nav dropdown "Sell" links) */
 (function prefillContactSubject(){
@@ -287,11 +319,94 @@ document.addEventListener('click',e=>{
   if(msg&&!msg.value)msg.placeholder='I would like to list my '+(subject||'asset').toLowerCase()+' for sale. Here are the details...';
  }
 })();
+/* Hidden search panels must not submit their (empty) fields */
+document.querySelectorAll('[data-search-fields][hidden]').forEach(panel=>panel.querySelectorAll('input,select').forEach(el=>{el.disabled=true;}));
 document.querySelectorAll('[data-search-form]').forEach(form=>form.addEventListener('submit',e=>{
  e.preventDefault();const data=new FormData(form),params=new URLSearchParams();
  data.forEach((value,key)=>{if(String(value).trim())params.set(key,String(value).trim());});
  location.href=(form.dataset.target||'properties.html')+(params.toString()?'?'+params.toString():'');
 }));
+
+/* ---------- Custom form validation ----------
+   Replaces the browser's native "Please fill out this field" tooltip with inline messages that
+   match the rest of the UI (red 2px field outline + icon + message under the field, teal check
+   when a field is valid). Applied to the public enquiry / visit / contact forms and the login form. */
+const ERROR_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+let fieldUid=0;
+function fieldWrap(el){return el.closest('.field');}
+function ensureFieldId(el){if(!el.id)el.id='fld-'+(++fieldUid);return el.id;}
+function fieldLabelText(el){
+ const wrap=fieldWrap(el),lab=wrap&&wrap.querySelector('label');
+ const raw=lab?lab.textContent:(el.getAttribute('aria-label')||el.getAttribute('placeholder')||'this field');
+ return raw.replace(/\(.*?\)/g,'').replace(/\*/g,'').replace(/\s+/g,' ').trim();
+}
+function controlMessage(el){
+ const v=String(el.value||'').trim(),label=fieldLabelText(el).toLowerCase();
+ if(el.required&&!v)return el.tagName==='SELECT'?'Please select '+label+'.':'Please enter your '+label+'.';
+ if(v&&el.type==='email'&&!EMAIL_RE.test(v))return 'Please enter a valid email address.';
+ if(v&&el.type==='tel'){
+  const digits=(v.match(/\d/g)||[]).length;
+  if(!/^\+?[\d\s\-().]+$/.test(v)||digits<7||digits>15)return 'Please enter a valid phone number.';
+ }
+ if(v&&el.pattern&&!new RegExp('^(?:'+el.pattern+')$').test(v))return el.title||'Please match the requested format.';
+ if(v&&el.minLength>0&&v.length<el.minLength)return 'Please enter at least '+el.minLength+' characters.';
+ return '';
+}
+function setFieldError(el,message){
+ const wrap=fieldWrap(el);if(!wrap)return;
+ let err=wrap.querySelector('.field-error');
+ if(message){
+  if(!err){err=document.createElement('p');err.className='field-error';err.id=ensureFieldId(el)+'-error';err.setAttribute('role','alert');wrap.appendChild(err);}
+  err.innerHTML=ERROR_ICON+'<span></span>';err.lastChild.textContent=message;
+  wrap.classList.add('is-invalid');wrap.classList.remove('is-valid');
+  el.setAttribute('aria-invalid','true');el.setAttribute('aria-describedby',err.id);
+ }else{
+  if(err)err.remove();
+  wrap.classList.remove('is-invalid');
+  el.removeAttribute('aria-invalid');el.removeAttribute('aria-describedby');
+ }
+}
+const VALIDATED_TYPES=['text','email','tel','search','url','number'];
+function validateControl(el,opts){
+ opts=opts||{};
+ if(el.disabled||['hidden','submit','button','file','checkbox','radio'].indexOf(el.type)>-1)return true;
+ const message=controlMessage(el),wrap=fieldWrap(el);
+ if(opts.silent&&message){ if(wrap)wrap.classList.remove('is-valid'); return false; }
+ setFieldError(el,message);
+ if(wrap){
+  const showCheck=!message&&String(el.value||'').trim()&&el.tagName==='INPUT'&&VALIDATED_TYPES.indexOf(el.type)>-1;
+  wrap.classList.toggle('is-valid',!!showCheck);
+ }
+ return !message;
+}
+function validateForm(form){
+ form.dataset.submitted='1';
+ let first=null;
+ form.querySelectorAll('input,select,textarea').forEach(el=>{if(!validateControl(el)&&!first)first=el;});
+ if(first)first.focus();
+ return !first;
+}
+function initFormValidation(){
+ document.querySelectorAll('[data-enquiry-form],[data-visit-form],[data-contact-form],[data-login-form]').forEach(form=>{
+  form.setAttribute('novalidate','');
+  /* validate a field when the user leaves it (only once it has content, or after a submit attempt) */
+  form.addEventListener('blur',e=>{
+   const el=e.target;if(!el.matches||!el.matches('input,select,textarea'))return;
+   if(String(el.value||'').trim()||form.dataset.submitted)validateControl(el);
+  },true);
+  /* live feedback: clear/refresh an error as soon as the user fixes it; show the teal check once valid */
+  form.addEventListener('input',e=>{
+   const el=e.target;if(!el.matches||!el.matches('input,select,textarea'))return;
+   const wrap=fieldWrap(el);if(!wrap)return;
+   if(wrap.classList.contains('is-invalid')){validateControl(el);return;}
+   const ok=!controlMessage(el)&&String(el.value||'').trim()&&el.tagName==='INPUT'&&VALIDATED_TYPES.indexOf(el.type)>-1;
+   wrap.classList.toggle('is-valid',!!ok);
+  });
+  form.addEventListener('change',e=>{const el=e.target;if(el.matches&&el.matches('select')&&fieldWrap(el)&&fieldWrap(el).classList.contains('is-invalid'))validateControl(el);});
+ });
+}
+initFormValidation();
 
 /* ---------- Enquiry / visit / contact forms -> real Inquiry rows via the API ---------- */
 function showFormSuccess(form,assetTitle,attachmentNames,ref){
@@ -306,7 +421,7 @@ function showFormSuccess(form,assetTitle,attachmentNames,ref){
 }
 document.querySelectorAll('[data-enquiry-form],[data-visit-form],[data-contact-form]').forEach(form=>form.addEventListener('submit',async e=>{
  e.preventDefault();
- if(!form.checkValidity()){form.reportValidity();return;}
+ if(!validateForm(form))return;
  const submitBtn=form.querySelector('[type=submit]');if(submitBtn)submitBtn.disabled=true;
  const assetTitle=form.dataset.assetTitle||document.title.split('|')[0].trim();
  const fileField=form.querySelector('input[type=file]');
@@ -337,7 +452,7 @@ const login=document.querySelector('[data-login-form]');
 if(login)login.addEventListener('submit',async e=>{
  e.preventDefault();
  const email=login.querySelector('input[type=email]'),password=login.querySelector('[data-password-input]'),notice=login.querySelector('.notice');
- if(!email.value||!password.value){if(notice){notice.className='notice error';notice.textContent='Please enter your email and password.';}return;}
+ if(!validateForm(login))return;
  const submitBtn=login.querySelector('[type=submit]');if(submitBtn)submitBtn.disabled=true;
  try{
   const data=await apiRequest('/auth/login/',{method:'POST',body:{email:email.value,password:password.value}});
@@ -464,14 +579,16 @@ function initPropertyForm(){
  const picker=setupMultiImagePicker(form,editId);
  (async()=>{
   const select=form.querySelector('select[name="category"]');
-  const defaultCategories=['Land / Plot','Villa / Apartment','Rental House / Apartment'];
-  if(select)select.innerHTML='<option value="">Select Property Category</option>'+defaultCategories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  /* Property categories = the same set used by the public menu / filter */
+  const defaultCategories=['Land / Plot','House','Villa','Apartment','Commercial'];
+  const legacyCategories=['villa / apartment','rental house / apartment'];
+  const setCategoryOptions=list=>{if(select)select.innerHTML='<option value="">Select Property Category</option>'+list.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');};
+  setCategoryOptions(defaultCategories);
   try{
    const categories=await apiList('categories');
-   if(select && Array.isArray(categories) && categories.length){
-    const allowed=new Set(defaultCategories.map(c=>c.toLowerCase()));
-    const filtered=categories.filter(c=>allowed.has(String(c.name||'').toLowerCase()));
-    if(filtered.length)select.innerHTML='<option value="">Select Property Category</option>'+filtered.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+   if(Array.isArray(categories)&&categories.length){
+    const extra=categories.map(c=>String(c.name||'')).filter(n=>n&&!defaultCategories.includes(n)&&legacyCategories.indexOf(n.toLowerCase())===-1);
+    setCategoryOptions(defaultCategories.concat(extra));
    }
   }catch(err){console.warn('Could not load categories from API; using default property categories.',err);}
   const id=qs('edit');
@@ -479,6 +596,8 @@ function initPropertyForm(){
    try{
     const item=await apiGetOne('properties',id);
     document.querySelector('.admin-title h1').textContent='Edit Property';
+    /* keep listings that still use a legacy category editable */
+    if(select&&item.category&&!Array.from(select.options).some(o=>o.value===item.category)){const opt=document.createElement('option');opt.value=item.category;opt.textContent=item.category;select.appendChild(opt);}
     const map={title:item.title,category:item.category,listingType:item.listingType,price:item.price,location:item.location,bedrooms:item.bedrooms,bathrooms:item.bathrooms,area:item.area,status:item.status,amenities:item.amenities,description:item.description};
     Object.entries(map).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v??'';});
     if(form.elements.featured)form.elements.featured.checked=!!item.featured;
@@ -520,7 +639,7 @@ async function renderVehicles(){
  let all;try{all=await get('vehicles');}catch(err){showError(err);return;}
  const data=all.filter(v=>(!status||v.status===status)&&[v.title,v.type,v.brand,v.year,v.price,v.fuel].join(' ').toLowerCase().includes(search));
  const count=document.querySelector('[data-count="vehicles"]');if(count)count.textContent=data.length+' vehicles';
- tbody.innerHTML=data.map(v=>`<tr><td><div class="table-title">${thumb(v.title,v.image)}<div><strong>${esc(v.title)}</strong><small>${esc(v.brand||'')} · ${esc(v.power||'')}</small></div></div></td><td>${esc(v.type)}</td><td>${esc(v.year)}</td><td><strong>${esc(v.price)}</strong></td><td>${esc(v.fuel)}</td><td>${statusBadge(v.status)}</td><td><div class="toggle-cell"><label class="switch"><input type="checkbox" data-feature-vehicle="${v.id}" ${v.featured?'checked':''}><span></span></label></div></td><td><div class="admin-actions"><a class="btn btn-outline" href="vehicle-form.html?edit=${encodeURIComponent(v.id)}">Edit</a><button class="btn btn-danger" data-delete-vehicle="${v.id}">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="8"><div class="empty-state">No vehicles match your filters.</div></td></tr>';
+ tbody.innerHTML=data.map(v=>`<tr><td><div class="table-title">${thumb(v.title,v.image)}<div><strong>${esc(v.title)}</strong><small>${esc([v.brand,v.odometer].filter(Boolean).join(' · '))}</small></div></div></td><td>${esc(v.type)}</td><td>${esc(v.year)}</td><td><strong>${esc(v.price)}</strong></td><td>${esc(v.fuel)}</td><td>${statusBadge(v.status)}</td><td><div class="toggle-cell"><label class="switch"><input type="checkbox" data-feature-vehicle="${v.id}" ${v.featured?'checked':''}><span></span></label></div></td><td><div class="admin-actions"><a class="btn btn-outline" href="vehicle-form.html?edit=${encodeURIComponent(v.id)}">Edit</a><button class="btn btn-danger" data-delete-vehicle="${v.id}">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="8"><div class="empty-state">No vehicles match your filters.</div></td></tr>';
 }
 document.addEventListener('input',e=>{if(e.target.matches('[data-table-search="vehicles"]'))renderVehicles();});
 document.addEventListener('change',async e=>{
@@ -752,6 +871,22 @@ if(profileForm){
  });
 }
 
+/* ---------- Shared listing-card components (property / vehicle) ---------- */
+const PIN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+const STAR_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+const CLOSE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+function cleanNumber(n){const v=Number(n);return Number.isFinite(v)&&v>0?String(v):'';}
+function propertyCard(p,opts){
+ opts=opts||{};
+ const specs=[cleanNumber(p.bedrooms)?cleanNumber(p.bedrooms)+' Beds':'',cleanNumber(p.bathrooms)?cleanNumber(p.bathrooms)+' Baths':'',p.area||''].filter(Boolean);
+ const badge=opts.badge?'<span class="badge card-badge">'+esc(opts.badge)+'</span>':'';
+ return `<article class="card-listing card-property${opts.reveal?' reveal-io':''}"><div class="card-media"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.display='none'">${badge}</div><div class="card-content"><p class="card-price">${esc(p.price)}</p><h3 class="card-title">${esc(p.title)}</h3><p class="card-location">${PIN_SVG}<span>${esc(p.location)}</span></p>${specs.length?'<div class="card-specs">'+specs.map(x=>'<span>'+esc(x)+'</span>').join('')+'</div>':''}<a class="card-link" href="property-details.html?id=${encodeURIComponent(p.id)}">View Details →</a></div></article>`;
+}
+function vehicleCard(v){
+ const meta=[v.year,v.fuel,v.odometer].filter(Boolean).join(' · ');
+ return `<article class="card-listing card-vehicle"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"><span class="badge card-badge">${v.featured?'Featured':'Available'}</span></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${meta?'<p class="card-meta">'+esc(meta)+'</p>':''}<a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`;
+}
+
 /* ============================== PUBLIC: Homepage ============================== */
 async function renderHome(){
  const propBox=document.querySelector('#home-properties-grid');
@@ -763,15 +898,15 @@ async function renderHome(){
  try{[properties,vehicles,testimonials,blog]=await Promise.all([get('properties'),get('vehicles'),get('testimonials'),get('blog')]);}catch(err){showError(err);return;}
  if(propBox){
   const items=properties.filter(p=>p.status==='Published'&&p.featured).slice(0,3);
-  propBox.innerHTML=items.map(p=>`<article class="feature-property-card reveal-io"><div class="feature-property-media"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="feature-property-body"><div class="price">${esc(p.price)}</div><h3>${esc(p.title)}</h3><div class="meta feature-location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 14.5 9 2.5 2.5 0 0 1 12 11.5Z"/></svg>${esc(p.location)}</div><div class="spec-row spec-row-property"><span>${esc(p.bedrooms)} Beds</span><span>${esc(p.bathrooms)} Baths</span><span>${esc(p.area)}</span></div><a class="text-link" href="property-details.html?id=${encodeURIComponent(p.id)}">View Details →</a></div></article>`).join('')||'<div class="empty-state">No featured properties yet. Add one from the admin panel.</div>';
+  propBox.innerHTML=items.map(p=>propertyCard(p,{reveal:true,featuredBadge:false})).join('')||'<div class="empty-state">No featured properties yet. Add one from the admin panel.</div>';
  }
  if(vehBox){
   const items=vehicles.filter(v=>v.status==='Published'&&v.featured).slice(0,2);
-  vehBox.innerHTML=items.map(v=>`<article class="feature-vehicle-card reveal-io"><div class="feature-vehicle-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="feature-vehicle-body"><div class="price">${esc(v.price)}</div><h3>${esc(v.title)}</h3><div class="meta">${esc(v.drivetrain||v.specifications||'')}</div><div class="spec-row spec-row-vehicle"><div><small>Year</small><strong>${esc(v.year)}</strong></div><div><small>Mileage</small><strong>${esc(v.range||'—')}</strong></div><div><small>Power</small><strong>${esc(v.power||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
+  vehBox.innerHTML=items.map(v=>`<article class="card-listing card-vehicle reveal-io"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${(v.drivetrain||v.specifications)?'<p class="card-meta card-meta-clamp">'+esc(v.drivetrain||v.specifications)+'</p>':''}<div class="card-spec-grid"><div><small>Year</small><strong>${esc(v.year||'—')}</strong></div><div><small>Mileage</small><strong>${esc(v.range||'—')}</strong></div><div><small>Odometer</small><strong>${esc(v.odometer||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
  }
  if(testBox){
   const items=testimonials.filter(t=>t.status==='Published').slice(0,2);
-  testBox.innerHTML=items.map(t=>`<article class="detail-card reveal-io"><div class="meta star-rating">${'★'.repeat(Number(t.rating||5))}</div><p>"${esc(t.review)}"</p><strong>${esc(t.name)}</strong><div class="meta">${esc(t.role||'Verified Client')}</div></article>`).join('');
+  testBox.innerHTML=items.map(t=>`<article class="card-testimonial reveal-io"><div class="rating" role="img" aria-label="${Number(t.rating||5)} out of 5 stars">${STAR_SVG.repeat(Math.max(0,Math.min(5,Number(t.rating||5))))}</div><blockquote>“${esc(t.review)}”</blockquote><div class="author"><strong>${esc(t.name)}</strong><span>${esc(t.role||'Verified Client')}</span></div></article>`).join('');
  }
  if(blogBox){
   const items=blog.filter(b=>b.status==='Published').slice(0,2);
@@ -781,23 +916,48 @@ async function renderHome(){
 
 /* ============================== PUBLIC: Properties listing + no-results ============================== */
 const BUDGET_RANGES={'Under ₹50 Lakh':[0,5000000],'₹50 Lakh – ₹1 Cr':[5000000,10000000],'₹1 Cr – ₹2 Cr':[10000000,20000000],'₹2 Cr+':[20000000,Infinity]};
+/* Property-type filter: House · Apartment · Villa · Commercial · Plot/Land.
+   Matches on the listing's category AND title, so legacy categories such as "Villa / Apartment" or
+   "Rental House / Apartment" still show up under each of the types they contain. */
+const TYPE_TOKENS={house:['house'],apartment:['apartment','flat'],villa:['villa'],commercial:['commercial','office','shop','showroom'],plot:['plot','land']};
+function normalizeTypeKey(v){
+ v=String(v||'').trim().toLowerCase();
+ if(!v)return '';
+ if(TYPE_TOKENS[v])return v;
+ if(/plot|land/.test(v))return 'plot';
+ if(/villa|waterfront/.test(v))return 'villa';
+ if(/apartment|flat|rental/.test(v))return 'apartment';
+ if(/house|single family/.test(v))return 'house';
+ if(/commercial|office|shop/.test(v))return 'commercial';
+ return v;
+}
+function parseTypeKeys(raw){return Array.from(new Set(String(raw||'').split(',').map(normalizeTypeKey).filter(Boolean)));}
+function propertyMatchesTypes(p,keys){
+ if(!keys.length)return true;
+ const hay=((p.category||'')+' '+(p.title||'')).toLowerCase();
+ return keys.some(k=>(TYPE_TOKENS[k]||[k]).some(t=>hay.includes(t)));
+}
 function filterProperties(list,o){
  return list.filter(p=>{
   if(p.status!=='Published')return false;
   if(o.location&&!(p.location||'').toLowerCase().includes(o.location.toLowerCase()))return false;
-  if(o.property_type){
-   const typeMap={plot:'land / plot',land:'land / plot',villa:'villa / apartment',apartment:'villa / apartment',rental:'rental house / apartment'};
-   const wanted=typeMap[String(o.property_type).toLowerCase()]||String(o.property_type).toLowerCase();
-   if(!(p.category||'').toLowerCase().includes(wanted))return false;
-  }
+  if(o.property_type&&!propertyMatchesTypes(p,parseTypeKeys(o.property_type)))return false;
   if(o.listing_type){const want=({sale:'sale',rent:'rent'})[o.listing_type]||o.listing_type;if((p.listingType||'').toLowerCase()!==want)return false;}
   if(o.budget&&BUDGET_RANGES[o.budget]){const [min,max]=BUDGET_RANGES[o.budget],val=priceValue(p.price);if(val<min||val>max)return false;}
   if(o.min_price&&priceValue(p.price)<Number(o.min_price))return false;
   if(o.max_price&&priceValue(p.price)>Number(o.max_price))return false;
-  if(o.bedrooms){const need=Number(String(o.bedrooms).replace(/\D/g,''))||0;if(Number(p.bedrooms||0)<need)return false;}
   if(o.q){const hay=[p.title,p.category,p.location,p.listingType].join(' ').toLowerCase();if(!hay.includes(o.q.toLowerCase()))return false;}
   return true;
  });
+}
+/* Filters that arrive via the URL but have no control in the sidebar (Buy/Rent from the menu,
+   Budget from the home search) are shown as removable chips so results never look "mysteriously" filtered. */
+function renderActiveFilters(o){
+ const box=document.querySelector('[data-active-filters]');if(!box)return;
+ const chips=[];
+ if(o.listing_type)chips.push({key:'listing_type',label:o.listing_type==='rent'?'For Rent':'For Sale'});
+ if(o.budget)chips.push({key:'budget',label:o.budget});
+ box.innerHTML=chips.map(c=>'<span class="filter-chip">'+esc(c.label)+'<button type="button" data-remove-filter="'+c.key+'" aria-label="Remove '+esc(c.label)+' filter">'+CLOSE_SVG+'</button></span>').join('');
 }
 async function renderPublicProperties(){
  const grid=document.querySelector('#properties-results-grid');if(!grid)return;
@@ -811,6 +971,7 @@ async function renderPublicProperties(){
  const noResults=document.querySelector('#no-results-state');
  if(!data.length){
   grid.innerHTML='';grid.style.display='none';
+  renderActiveFilters(o);
   if(noResults){
    noResults.style.display='block';
    const q=o.q||o.location||'your search criteria';
@@ -818,25 +979,38 @@ async function renderPublicProperties(){
    const altBox=noResults.querySelector('#no-results-alternatives');
    if(altBox){
     const alt=all.filter(p=>p.status==='Published'&&p.featured).slice(0,3);
-    altBox.innerHTML=alt.map(p=>`<article class="card">${mediaCover(p.image,p.title)}<div class="card-body"><h3>${esc(p.title)}</h3><div class="meta">${esc(p.location)}</div><div class="price">${esc(p.price)}</div><a class="btn btn-outline" href="property-details.html?id=${encodeURIComponent(p.id)}">View Property</a></div></article>`).join('');
+    altBox.innerHTML=alt.map(p=>propertyCard(p,{})).join('');
    }
   }
  }else{
   grid.style.display='';if(noResults)noResults.style.display='none';
-  grid.innerHTML=data.map(p=>`<article class="card">${mediaCover(p.image,p.title)}<div class="card-body"><span class="badge">${p.featured?'Featured':'Available'}</span><h3>${esc(p.title)}</h3><div class="meta">${esc(p.location)} · ${esc(p.bedrooms)} BHK · ${esc(p.area)}</div><div class="price">${esc(p.price)}</div><a class="btn btn-outline" href="property-details.html?id=${encodeURIComponent(p.id)}">View Property</a></div></article>`).join('');
+  grid.innerHTML=data.map(p=>propertyCard(p,{badge:p.featured?'Featured':'Available'})).join('');
+  renderActiveFilters(o);
  }
 }
 const propFilterForm=document.querySelector('[data-property-filter-form]');
 if(propFilterForm){
  const params=new URLSearchParams(location.search);
- params.forEach((v,k)=>{if(propFilterForm.elements[k])propFilterForm.elements[k].value=v;});
+ if(propFilterForm.elements.location&&params.get('location'))propFilterForm.elements.location.value=params.get('location');
+ const wanted=parseTypeKeys(params.get('property_type'));
+ propFilterForm.querySelectorAll('input[name="property_type"]').forEach(box=>{box.checked=wanted.indexOf(box.value)>-1;});
  propFilterForm.addEventListener('submit',e=>{
-  e.preventDefault();const data=new FormData(propFilterForm),p2=new URLSearchParams();
-  data.forEach((v,k)=>{if(String(v).trim())p2.set(k,String(v).trim());});
+  e.preventDefault();
+  const p2=new URLSearchParams(location.search);
+  const loc=(propFilterForm.elements.location.value||'').trim();
+  if(loc)p2.set('location',loc);else p2.delete('location');
+  const types=Array.from(propFilterForm.querySelectorAll('input[name="property_type"]:checked')).map(b=>b.value);
+  if(types.length)p2.set('property_type',types.join(','));else p2.delete('property_type');
   history.replaceState(null,'',location.pathname+(p2.toString()?'?'+p2.toString():''));
   renderPublicProperties();
  });
 }
+document.addEventListener('click',e=>{
+ const rm=e.target.closest('[data-remove-filter]');if(!rm)return;
+ const p2=new URLSearchParams(location.search);p2.delete(rm.dataset.removeFilter);
+ history.replaceState(null,'',location.pathname+(p2.toString()?'?'+p2.toString():''));
+ renderPublicProperties();
+});
 const liveSearch=document.querySelector('[data-live-search]');
 if(liveSearch)liveSearch.addEventListener('input',()=>renderPublicProperties());
 document.addEventListener('click',e=>{if(e.target.closest('[data-clear-filters]')){history.replaceState(null,'',location.pathname);if(propFilterForm)propFilterForm.reset();if(liveSearch)liveSearch.value='';renderPublicProperties();}});
@@ -899,12 +1073,20 @@ async function renderPropertyDetail(){
 }
 
 /* ============================== PUBLIC: Vehicle listing + detail ============================== */
+/* "Year" filter is expressed as vehicle age buckets instead of raw years */
+function vehicleAgeMatches(v,key){
+ if(!key)return true;
+ if(/^\d{4}$/.test(String(key)))return String(v.year)===String(key); /* legacy ?year=2025 links */
+ const year=Number(v.year);if(!year)return false;
+ const age=new Date().getFullYear()-year;
+ switch(key){case 'lt2':return age<2;case 'lt5':return age<5;case 'lt10':return age<10;case 'gt10':return age>10;default:return true;}
+}
 async function renderPublicVehicles(){
  const grid=document.querySelector('#public-vehicles-grid');if(!grid)return;
  let all;try{all=await get('vehicles');}catch(err){showError(err);return;}
  const form=document.querySelector('[data-vehicle-search]'),o=form?formDataObject(form):{};
- const data=all.filter(v=>v.status==='Published'&&(!o.type||v.type===o.type)&&(!o.fuel||v.fuel===o.fuel)&&(!o.transmission||(v.transmission||'').toLowerCase()===o.transmission.toLowerCase())&&(!o.year||String(v.year)===String(o.year)));
- grid.innerHTML=data.map(v=>`<article class="card">${mediaCover(v.image,v.title,'vehicle-image')}<div class="card-body">${v.featured?'<span class="badge">Featured</span>':'<span class="badge">Available</span>'}<h3>${esc(v.title)}</h3><div class="meta">${esc(v.year)} · ${esc(v.fuel)} · ${esc(v.power||'')}</div><div class="price">${esc(v.price)}</div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No vehicles match the selected filters. Try clearing a filter.</div>';
+ const data=all.filter(v=>v.status==='Published'&&(!o.type||v.type===o.type)&&(!o.fuel||v.fuel===o.fuel)&&(!o.transmission||(v.transmission||'').toLowerCase()===o.transmission.toLowerCase())&&vehicleAgeMatches(v,o.year));
+ grid.innerHTML=data.map(vehicleCard).join('')||'<div class="empty-state">No vehicles match the selected filters. Try clearing a filter.</div>';
 }
 const vehicleSearch=document.querySelector('[data-vehicle-search]');
 if(vehicleSearch){
@@ -932,7 +1114,7 @@ async function renderVehicleDetail(){
  document.title=item.title+' | Realty Hub';
  const bc=document.querySelector('[data-breadcrumb]');if(bc)bc.textContent='Home / Vehicles / '+item.title;
  const h1=document.querySelector('[data-detail-title]');if(h1)h1.textContent=item.title;
- const sub=document.querySelector('[data-detail-sub]');if(sub)sub.textContent=item.year+' · '+item.fuel+' · '+(item.power||'');
+ const sub=document.querySelector('[data-detail-sub]');if(sub)sub.textContent=[item.year,item.fuel,item.odometer].filter(Boolean).join(' · ');
  const gm=document.querySelector('[data-gallery-main]');
  const gs=document.querySelector('[data-gallery-side]');
  const gt=document.querySelector('[data-gallery-thumbs]');
@@ -964,10 +1146,10 @@ async function renderVehicleDetail(){
  }
  root.querySelector('[data-detail-badge]').textContent=(item.featured?'Featured · ':'')+item.status;
  root.querySelector('[data-detail-price]').textContent=item.price;
- root.querySelector('[data-detail-meta]').textContent=item.brand+' · '+item.type+' · '+item.fuel;
+ root.querySelector('[data-detail-meta]').textContent=[item.brand,item.type,item.fuel].filter(Boolean).join(' · ');
  root.querySelector('[data-detail-desc]').textContent=item.specifications||'';
  const list=root.querySelector('[data-detail-list]');
- if(list)list.innerHTML=`<div><strong>Year</strong><span>${esc(item.year)}</span></div><div><strong>Fuel</strong><span>${esc(item.fuel)}</span></div><div><strong>Transmission</strong><span>${esc(item.transmission||'—')}</span></div><div><strong>Power</strong><span>${esc(item.power||'—')}</span></div>`;
+ if(list)list.innerHTML=`<div><strong>Year</strong><span>${esc(item.year)}</span></div><div><strong>Fuel</strong><span>${esc(item.fuel)}</span></div><div><strong>Transmission</strong><span>${esc(item.transmission||'—')}</span></div><div><strong>Odometer</strong><span>${esc(item.odometer||'—')}</span></div>`;
  document.querySelectorAll('[data-enquiry-form]').forEach(f=>{f.dataset.assetTitle=item.title;f.dataset.assetType='Vehicle';});
 }
 

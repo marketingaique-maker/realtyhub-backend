@@ -70,6 +70,7 @@ class Vehicle(models.Model):
     fuel = models.CharField(max_length=50, blank=True, default="")
     transmission = models.CharField(max_length=50, blank=True, default="")
     power = models.CharField(max_length=50, blank=True, default="")
+    odometer = models.CharField(max_length=50, blank=True, default="")
     range = models.CharField(max_length=50, blank=True, default="")
     drivetrain = models.CharField(max_length=100, blank=True, default="")
     specifications = models.TextField(blank=True, default="")
