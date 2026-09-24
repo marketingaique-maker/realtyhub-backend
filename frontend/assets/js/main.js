@@ -1232,3 +1232,48 @@ function initReveal(){
  items.forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%4,4)*70)+'ms';io.observe(el);});
 }
 })();
+document.addEventListener('DOMContentLoaded', function () {
+  var toolbar = document.querySelector('.editor-toolbar');
+  var textarea = document.getElementById('editorContent');
+  if (!toolbar || !textarea) return;
+
+  function wrapSelection(before, after) {
+    after = after || before;
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var value = textarea.value;
+    var selected = value.substring(start, end) || 'text';
+    textarea.value = value.substring(0, start) + before + selected + after + value.substring(end);
+    textarea.focus();
+    textarea.selectionStart = start + before.length;
+    textarea.selectionEnd = start + before.length + selected.length;
+  }
+
+  toolbar.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-cmd]');
+    if (!btn) return;
+    e.preventDefault();
+    var cmd = btn.getAttribute('data-cmd');
+
+    if (cmd === 'bold') {
+      wrapSelection('<strong>', '</strong>');
+    } else if (cmd === 'italic') {
+      wrapSelection('<em>', '</em>');
+    } else if (cmd === 'h2') {
+      wrapSelection('<h2>', '</h2>');
+    } else if (cmd === 'list') {
+      var start = textarea.selectionStart;
+      var end = textarea.selectionEnd;
+      var selected = textarea.value.substring(start, end) || 'List item';
+      var items = selected.split('\n').map(function (line) {
+        return '<li>' + line + '</li>';
+      }).join('');
+      textarea.value = textarea.value.substring(0, start) + '<ul>' + items + '</ul>' + textarea.value.substring(end);
+      textarea.focus();
+    } else if (cmd === 'link') {
+      var url = prompt('Enter link URL:', 'https://');
+      if (!url) return;
+      wrapSelection('<a href="' + url + '">', '</a>');
+    }
+  });
+});
