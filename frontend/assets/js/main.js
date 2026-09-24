@@ -1259,9 +1259,15 @@ document.addEventListener('DOMContentLoaded', function () {
       wrapSelection('<strong>', '</strong>');
     } else if (cmd === 'italic') {
       wrapSelection('<em>', '</em>');
-    } else if (cmd === 'h2') {
+    } else if (cmd === 'h1') {
+        wrapSelection('<h1>', '</h1>');
+      } else if (cmd === 'h2') {
       wrapSelection('<h2>', '</h2>');
-    } else if (cmd === 'list') {
+    } else if (cmd === 'h3') {
+        wrapSelection('<h3>', '</h3>');
+      } else if (cmd === 'h4') {
+        wrapSelection('<h4>', '</h4>');
+      } else if (cmd === 'list') {
       var start = textarea.selectionStart;
       var end = textarea.selectionEnd;
       var selected = textarea.value.substring(start, end) || 'List item';
