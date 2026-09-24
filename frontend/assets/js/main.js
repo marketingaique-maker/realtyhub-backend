@@ -1178,7 +1178,7 @@ async function renderBlogPost(){
  root.querySelector('[data-post-meta]').textContent=item.author+' · '+item.date;
  root.querySelector('[data-post-image]').src=item.image;
  root.querySelector('[data-post-image]').alt=item.title;
- root.querySelector('[data-post-body]').innerHTML=(item.content||'').split(/\n+/).map(p=>{var t=p.trim();return (t.startsWith('<h2')||t.startsWith('<ul'))?t:'<p>'+t+'</p>';}).join('');
+ root.querySelector('[data-post-body]').innerHTML=(item.content||'').split(/\n+/).map(p=>{var t=p.trim();return (t.startsWith('<h1')||t.startsWith('<h2')||t.startsWith('<h3')||t.startsWith('<h4')||t.startsWith('<ul'))?t:'<p>'+t+'</p>';}).join('');
 }
 
 /* Share dialog */
@@ -1269,11 +1269,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return '<li>' + line + '</li>';
       }).join('');
       textarea.value = textarea.value.substring(0, start) + '<ul>' + items + '</ul>' + textarea.value.substring(end);
-      textarea.focus();
+      textarea.focus({preventScroll: true});
     } else if (cmd === 'link') {
       var url = prompt('Enter link URL:', 'https://');
       if (!url) return;
-      wrapSelection('<a href="' + url + '">', '</a>');
+      var isExternal = /^https?:\/\//i.test(url);
+wrapSelection('<a href="' + url + '"' + (isExternal ? ' target="_blank" rel="noopener"' : '') + '>', '</a>');
     }
   });
 });
