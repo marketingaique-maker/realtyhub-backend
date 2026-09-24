@@ -1178,7 +1178,7 @@ async function renderBlogPost(){
  root.querySelector('[data-post-meta]').textContent=item.author+' · '+item.date;
  root.querySelector('[data-post-image]').src=item.image;
  root.querySelector('[data-post-image]').alt=item.title;
- root.querySelector('[data-post-body]').innerHTML=(item.content||'').split(/\n+/).map(p=>'<p>'+esc(p)+'</p>').join('');
+ root.querySelector('[data-post-body]').innerHTML=(item.content||'').split(/\n+/).map(p=>{var t=p.trim();return (t.startsWith('<h2')||t.startsWith('<ul'))?t:'<p>'+t+'</p>';}).join('');
 }
 
 /* Share dialog */
