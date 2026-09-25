@@ -880,11 +880,11 @@ function propertyCard(p,opts){
  opts=opts||{};
  const specs=[cleanNumber(p.bedrooms)?cleanNumber(p.bedrooms)+' Beds':'',cleanNumber(p.bathrooms)?cleanNumber(p.bathrooms)+' Baths':'',p.area||''].filter(Boolean);
  const badge=opts.badge?'<span class="badge card-badge">'+esc(opts.badge)+'</span>':'';
- return `<article class="card-listing card-property${opts.reveal?' reveal-io':''}"><div class="card-media"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.display='none'">${badge}</div><div class="card-content"><p class="card-price">${esc(p.price)}</p><h3 class="card-title">${esc(p.title)}</h3><p class="card-location">${PIN_SVG}<span>${esc(p.location)}</span></p>${specs.length?'<div class="card-specs">'+specs.map(x=>'<span>'+esc(x)+'</span>').join('')+'</div>':''}<a class="card-link" href="property-details.html?id=${encodeURIComponent(p.id)}">View Details →</a></div></article>`;
+ return `<article class="card-listing card-property${opts.reveal?' reveal-io':''}" data-href="property-details.html?id=${encodeURIComponent(p.id)}"><div class="card-media"><img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy" onerror="this.style.display='none'">${badge}</div><div class="card-content"><p class="card-price">${esc(p.price)}</p><h3 class="card-title">${esc(p.title)}</h3><p class="card-location">${PIN_SVG}<span>${esc(p.location)}</span></p>${specs.length?'<div class="card-specs">'+specs.map(x=>'<span>'+esc(x)+'</span>').join('')+'</div>':''}<a class="card-link" href="property-details.html?id=${encodeURIComponent(p.id)}">View Details →</a></div></article>`;
 }
 function vehicleCard(v){
  const meta=[v.year,v.fuel,v.odometer].filter(Boolean).join(' · ');
- return `<article class="card-listing card-vehicle"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"><span class="badge card-badge">${v.featured?'Featured':'Available'}</span></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${meta?'<p class="card-meta">'+esc(meta)+'</p>':''}<a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`;
+ return `<article class="card-listing card-vehicle" data-href="vehicle-details.html?id=${encodeURIComponent(v.id)}"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"><span class="badge card-badge">${v.featured?'Featured':'Available'}</span></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${meta?'<p class="card-meta">'+esc(meta)+'</p>':''}<a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`;
 }
 
 /* ============================== PUBLIC: Homepage ============================== */
@@ -902,7 +902,7 @@ async function renderHome(){
  }
  if(vehBox){
   const items=vehicles.filter(v=>v.status==='Published'&&v.featured).slice(0,2);
-  vehBox.innerHTML=items.map(v=>`<article class="card-listing card-vehicle reveal-io"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${(v.drivetrain||v.specifications)?'<p class="card-meta card-meta-clamp">'+esc(v.drivetrain||v.specifications)+'</p>':''}<div class="card-spec-grid"><div><small>Year</small><strong>${esc(v.year||'—')}</strong></div><div><small>Mileage</small><strong>${esc(v.range||'—')}</strong></div><div><small>Odometer</small><strong>${esc(v.odometer||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
+  vehBox.innerHTML=items.map(v=>`<article class="card-listing card-vehicle reveal-io" data-href="vehicle-details.html?id=${encodeURIComponent(v.id)}"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${(v.drivetrain||v.specifications)?'<p class="card-meta card-meta-clamp">'+esc(v.drivetrain||v.specifications)+'</p>':''}<div class="card-spec-grid"><div><small>Year</small><strong>${esc(v.year||'—')}</strong></div><div><small>Mileage</small><strong>${esc(v.range||'—')}</strong></div><div><small>Odometer</small><strong>${esc(v.odometer||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
  }
  if(testBox){
   const items=testimonials.filter(t=>t.status==='Published').slice(0,2);
@@ -910,7 +910,7 @@ async function renderHome(){
  }
  if(blogBox){
   const items=blog.filter(b=>b.status==='Published').slice(0,2);
-  blogBox.innerHTML=items.map(b=>`<article class="card reveal-io"><div class="blog-thumb"><img src="${esc(b.image)}" alt="${esc(b.title)}" loading="lazy"></div><div class="card-body"><span class="badge">${esc(b.category)}</span><h3>${esc(b.title)}</h3><p class="meta">${esc(b.excerpt)}</p><div class="meta">${esc(b.author)} · ${esc(b.date)}</div><a class="text-link" href="blog-post.html?id=${encodeURIComponent(b.id)}">Read more →</a></div></article>`).join('');
+  blogBox.innerHTML=items.map(b=>`<article class="card reveal-io" data-href="blog-post.html?id=${encodeURIComponent(b.id)}"><div class="blog-thumb"><img src="${esc(b.image)}" alt="${esc(b.title)}" loading="lazy"></div><div class="card-body"><span class="badge">${esc(b.category)}</span><h3>${esc(b.title)}</h3><p class="meta">${esc(b.excerpt)}</p><div class="meta">${esc(b.author)} · ${esc(b.date)}</div><a class="text-link" href="blog-post.html?id=${encodeURIComponent(b.id)}">Read more →</a></div></article>`).join('');
  }
 }
 
@@ -1158,7 +1158,7 @@ async function renderPublicBlog(){
  const grid=document.querySelector('#public-blog-grid');if(!grid)return;
  let all;try{all=await get('blog');}catch(err){showError(err);return;}
  const data=all.filter(b=>b.status==='Published');
- grid.innerHTML=data.map(b=>`<article class="card"><div class="blog-thumb"><img src="${esc(b.image)}" alt="${esc(b.title)}" loading="lazy"></div><div class="card-body"><span class="badge">${esc(b.category)}</span><h3>${esc(b.title)}</h3><p class="meta">${esc(b.excerpt)}</p><div class="meta">${esc(b.author)} · ${esc(b.date)}</div><a class="text-link" href="blog-post.html?id=${encodeURIComponent(b.id)}">Read more →</a></div></article>`).join('')||'<div class="empty-state">No articles published yet.</div>';
+ grid.innerHTML=data.map(b=>`<article class="card" data-href="blog-post.html?id=${encodeURIComponent(b.id)}"><div class="blog-thumb"><img src="${esc(b.image)}" alt="${esc(b.title)}" loading="lazy"></div><div class="card-body"><span class="badge">${esc(b.category)}</span><h3>${esc(b.title)}</h3><p class="meta">${esc(b.excerpt)}</p><div class="meta">${esc(b.author)} · ${esc(b.date)}</div><a class="text-link" href="blog-post.html?id=${encodeURIComponent(b.id)}">Read more →</a></div></article>`).join('')||'<div class="empty-state">No articles published yet.</div>';
 }
 async function renderBlogPost(){
  const root=document.querySelector('[data-blog-post]');if(!root)return;
@@ -1283,4 +1283,9 @@ document.addEventListener('DOMContentLoaded', function () {
 wrapSelection('<a href="' + url + '"' + (isExternal ? ' target="_blank" rel="noopener"' : '') + '>', '</a>');
     }
   });
+});
+document.addEventListener('click', function (e) {
+  if (e.target.closest('a,button,input,textarea,select,label')) return;
+  var card = e.target.closest('[data-href]');
+  if (card) window.location.href = card.getAttribute('data-href');
 });
