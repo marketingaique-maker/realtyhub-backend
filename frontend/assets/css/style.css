@@ -740,3 +740,23 @@ img{max-width:100%;display:block}
 [data-post-body] a:hover {
   color: #1d4ed8;
 }
+@media (max-width: 640px) {
+  .post-hero-img { height: 220px; }
+  .property-image { height: 140px; }
+}
+[data-post-title]{font-size:40px;line-height:1.15;font-weight:700;color:var(--color-navy);margin:8px 0}
+[data-post-meta]{color:#6b7280;font-size:14px}
+.breadcrumbs[style]{color:#6b7280 !important}
+
+[data-post-body] h2{font-size:22px;font-weight:600;color:var(--color-navy);margin:32px 0 8px;position:relative;padding-bottom:12px}
+[data-post-body] h2::after{content:"";position:absolute;left:0;bottom:0;width:60px;height:3px;background:var(--color-teal,#0f6e8c)}
+[data-post-body] h3{font-size:19px;font-weight:600;color:var(--color-navy);margin:24px 0 8px}
+[data-post-body] h4{font-size:17px;font-weight:600;color:var(--color-navy);margin:20px 0 6px}
+[data-post-body] p{font-size:16px;line-height:1.7;color:#374151;margin:0 0 16px}
+[data-post-body] ul{margin:0 0 16px;padding-left:20px}
+[data-post-body] li{font-size:16px;line-height:1.7;color:#374151;margin-bottom:8px}
+
+@media (max-width:640px){
+  [data-post-title]{font-size:28px}
+  [data-post-body] h2{font-size:19px}
+}
