@@ -427,7 +427,7 @@ img{max-width:100%;display:block}
 .card-body h3{font-size:var(--text-body);line-height:var(--lh-body);font-weight:var(--weight-semibold);margin:8px 0 5px}
 .card .btn{margin-top:7px}
 .blog-thumb{height:150px;overflow:hidden;border-radius:5px 5px 0 0}
-.blog-thumb img{width:100%;height:100%;object-fit:cover}
+.blog-thumb img{width:100%;height:100%;object-fit:cover;object-position:top}
 .post-hero-img{width:100%;height:360px;object-fit:cover;border-radius:6px}
 .avatar-round{width:34px;height:34px;border-radius:50%;object-fit:cover}
 .about-hero-img{border-radius:8px;overflow:hidden;box-shadow:var(--shadow-md)}
