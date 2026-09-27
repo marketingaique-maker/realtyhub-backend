@@ -766,3 +766,11 @@ img{max-width:100%;display:block}
 .post-cta-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 .post-cta-primary{background:#0f6e8c;color:#fff;border:none}
 .post-cta-outline{background:transparent;color:#fff;border:1px solid #b3dbe6}
+[data-post-body] details{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 24px;margin-bottom:12px;transition:box-shadow .2s ease}
+[data-post-body] details[open]{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+[data-post-body] summary{cursor:pointer;font-weight:600;color:#111827;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+[data-post-body] summary::-webkit-details-marker{display:none}
+[data-post-body] summary::marker{content:""}
+[data-post-body] summary::after{content:"⌄";font-size:20px;color:#0f6e8c;transition:transform .2s ease;flex-shrink:0}
+[data-post-body] details[open] summary::after{transform:rotate(180deg)}
+[data-post-body] details p{margin:14px 0 0;color:#4b4b4b;font-size:15px;line-height:1.6}
