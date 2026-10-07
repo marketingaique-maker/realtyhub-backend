@@ -902,7 +902,7 @@ async function renderHome(){
  }
  if(vehBox){
   const items=vehicles.filter(v=>v.status==='Published'&&v.featured).slice(0,2);
-  vehBox.innerHTML=items.map(v=>`<article class="card-listing card-vehicle reveal-io" data-href="vehicle-details.html?id=${encodeURIComponent(v.id)}"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${(v.drivetrain||v.specifications)?'<p class="card-meta card-meta-clamp">'+esc(v.drivetrain||v.specifications)+'</p>':''}<div class="card-spec-grid"><div><small>Year</small><strong>${esc(v.year||'—')}</strong></div><div><small>Mileage</small><strong>${esc(v.range||'—')}</strong></div><div><small>Odometer</small><strong>${esc(v.odometer||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
+  vehBox.innerHTML=items.map(v=>`<article class="card-listing card-vehicle reveal-io" data-href="vehicle-details.html?id=${encodeURIComponent(v.id)}"><div class="card-media"><img src="${esc(v.image)}" alt="${esc(v.title)}" loading="lazy" onerror="this.style.display='none'"></div><div class="card-content"><p class="card-price">${esc(v.price)}</p><h3 class="card-title">${esc(v.title)}</h3>${(v.drivetrain||v.specifications)?'<p class="card-meta card-meta-clamp">'+esc(v.drivetrain||v.specifications)+'</p>':''}<div class="card-spec-grid"><div><small>Year</small><strong>${esc(v.year||'—')}</strong></div><div><small>Fuel</small><strong>${esc(v.fuel||'—')}</strong></div><div><small>Odometer</small><strong>${esc(v.odometer||'—')}</strong></div></div><a class="btn btn-outline" href="vehicle-details.html?id=${encodeURIComponent(v.id)}">View Vehicle</a></div></article>`).join('')||'<div class="empty-state">No featured vehicles yet.</div>';
  }
  if(testBox){
   const items=testimonials.filter(t=>t.status==='Published').slice(0,2);
@@ -1178,7 +1178,7 @@ async function renderBlogPost(){
  root.querySelector('[data-post-meta]').textContent=item.author+' · '+item.date;
  root.querySelector('[data-post-image]').src=item.image;
  root.querySelector('[data-post-image]').alt=item.title;
- root.querySelector('[data-post-body]').innerHTML=(item.content||'').split(/\n+/).map(p=>{var t=p.trim();return (t.startsWith('<h1')||t.startsWith('<h2')||t.startsWith('<h3')||t.startsWith('<h4')||t.startsWith('<ul'))?t:'<p>'+t+'</p>';}).join('');
+ root.querySelector('[data-post-body]').innerHTML=window.renderPostContent(item.content);
 }
 
 /* Share dialog */
@@ -1288,4 +1288,90 @@ document.addEventListener('click', function (e) {
   if (e.target.closest('a,button,input,textarea,select,label')) return;
   var card = e.target.closest('[data-href]');
   if (card) window.location.href = card.getAttribute('data-href');
+});
+/* ===== Blog: shared content renderer + editor toolbar v2 ===== */
+window.renderPostContent = function (raw) {
+  var BLOCK = /^<(h[1-6]|ul|ol|details|div|table|blockquote|p|figure|hr)\b/i;
+  var tpl = document.createElement('template');
+  return String(raw || '').split(/\n+/).map(function (line) {
+    var t = line.trim();
+    if (!t) return '';
+    tpl.innerHTML = BLOCK.test(t) ? t : '<p>' + t + '</p>';
+    return tpl.innerHTML;
+  }).join('');
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  var toolbar = document.querySelector('.editor-toolbar');
+  var textarea = document.getElementById('editorContent');
+  var preview = document.getElementById('editorPreview');
+  if (!toolbar || !textarea) return;
+
+  function keepFocus() { textarea.focus({ preventScroll: true }); }
+
+  function refreshPreview() {
+    if (preview && !preview.hidden) preview.innerHTML = window.renderPostContent(textarea.value);
+  }
+
+  function wrap(before, after) {
+    var s = textarea.selectionStart, e = textarea.selectionEnd, v = textarea.value;
+    var sel = v.substring(s, e);
+    var bl = before.length, al = after.length;
+    if (sel.length >= bl + al && sel.indexOf(before) === 0 && sel.slice(-al) === after) {
+      var inner = sel.slice(bl, sel.length - al);
+      textarea.value = v.substring(0, s) + inner + v.substring(e);
+      keepFocus();
+      textarea.setSelectionRange(s, s + inner.length);
+    } else if (s >= bl && v.substring(s - bl, s) === before && v.substring(e, e + al) === after) {
+      textarea.value = v.substring(0, s - bl) + sel + v.substring(e + al);
+      keepFocus();
+      textarea.setSelectionRange(s - bl, s - bl + sel.length);
+    } else {
+      sel = sel || 'text';
+      textarea.value = v.substring(0, s) + before + sel + after + v.substring(e);
+      keepFocus();
+      textarea.setSelectionRange(s + bl, s + bl + sel.length);
+    }
+    refreshPreview();
+  }
+
+  function makeList() {
+    var s = textarea.selectionStart, e = textarea.selectionEnd, v = textarea.value;
+    var sel = v.substring(s, e) || 'List item';
+    var items = sel.split('\n').filter(function (l) { return l.trim(); }).map(function (l) {
+      return '<li>' + l.trim() + '</li>';
+    }).join('');
+    textarea.value = v.substring(0, s) + '<ul>' + items + '</ul>' + v.substring(e);
+    keepFocus();
+    refreshPreview();
+  }
+
+  function makeLink() {
+    var url = prompt('Enter link URL:', 'https://');
+    if (!url) return;
+    var ext = /^https?:\/\//i.test(url);
+    wrap('<a href="' + url + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>', '</a>');
+  }
+
+  function togglePreview(btn) {
+    if (!preview) return;
+    preview.hidden = !preview.hidden;
+    btn.textContent = preview.hidden ? 'Preview' : 'Hide preview';
+    refreshPreview();
+  }
+
+  textarea.addEventListener('input', refreshPreview);
+
+  toolbar.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-cmd]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var cmd = btn.getAttribute('data-cmd');
+    var tags = { bold: 'strong', italic: 'em', h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4' };
+    if (tags[cmd]) wrap('<' + tags[cmd] + '>', '</' + tags[cmd] + '>');
+    else if (cmd === 'list') makeList();
+    else if (cmd === 'link') makeLink();
+    else if (cmd === 'preview') togglePreview(btn);
+  }, true);
 });
