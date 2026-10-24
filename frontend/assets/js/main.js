@@ -1397,3 +1397,60 @@ document.addEventListener('DOMContentLoaded', function () {
   // Enquiry form success page counts as "Lead"
   if (location.pathname.indexOf('enquiry-success') !== -1) fbq('track', 'Lead');
 })();
+/* ===== Blog editor: upload & insert image ===== */
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('[data-cmd="image"]');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var ta = document.getElementById('editorContent');
+  if (!ta) return;
+
+  var picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = 'image/*';
+  picker.onchange = async function () {
+    var file = picker.files && picker.files[0];
+    if (!file) return;
+    var start = ta.selectionStart, end = ta.selectionEnd;
+    var oldLabel = btn.textContent;
+    btn.textContent = 'Uploading...';
+    btn.disabled = true;
+    try {
+      var token = null;
+      try { token = sessionStorage.getItem('rh_admin'); } catch (x) {}
+      var fd = new FormData();
+      fd.append('image', file);
+      var res = await fetch('https://api.realtyhub.co.in/api/uploads/blog-image/', {
+        method: 'POST',
+        headers: token ? { 'Authorization': 'Token ' + token } : {},
+        body: fd
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok || !data.url) throw new Error(data.detail || ('Upload failed (' + res.status + ')'));
+
+      var url = data.url;
+      if (url.indexOf('res.cloudinary.com') !== -1 && url.indexOf('/upload/') !== -1) {
+        url = url.replace('/upload/', '/upload/w_1200,q_auto,f_auto/');
+      }
+      var alt = prompt('Short description of the image (helps SEO):', '') || '';
+      var cap = prompt('Caption under the image (optional):', '') || '';
+      var html = '<figure><img src="' + url + '" alt="' + alt.replace(/"/g, '&quot;') + '" loading="lazy">' +
+        (cap ? '<figcaption>' + cap + '</figcaption>' : '') + '</figure>';
+
+      var v = ta.value;
+      var before = v.slice(0, start), after = v.slice(end);
+      var pre = before && !/\n$/.test(before) ? '\n' : '';
+      var post = after && !/^\n/.test(after) ? '\n' : '';
+      ta.value = before + pre + html + post + after;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ta.focus({ preventScroll: true });
+    } catch (err) {
+      alert('Image upload failed: ' + (err.message || err));
+    } finally {
+      btn.textContent = oldLabel;
+      btn.disabled = false;
+    }
+  };
+  picker.click();
+}, true);
