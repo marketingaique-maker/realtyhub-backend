@@ -369,3 +369,25 @@ def profile_view(request):
     if new_email or new_password:
         request.user.save()
     return Response(serializer.data)
+
+    @api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_blog_image_view(request):
+    """Upload one inline image for a blog post and return its public URL."""
+    import uuid
+    from django.core.files.storage import default_storage
+
+    f = request.FILES.get("image")
+    if not f:
+        return Response({"detail": "No image was uploaded."}, status=400)
+    if not (f.content_type or "").startswith("image/"):
+        return Response({"detail": "Only image files are allowed."}, status=400)
+    if f.size > 8 * 1024 * 1024:
+        return Response({"detail": "Image is too large (max 8 MB)."}, status=400)
+    ext = f.name.rsplit(".", 1)[-1].lower() if "." in f.name else "jpg"
+    saved = default_storage.save("blog_content/%s.%s" % (uuid.uuid4().hex, ext), f)
+    url = default_storage.url(saved)
+    if url.startswith("/"):
+        url = request.build_absolute_uri(url)
+    return Response({"url": url}, status=201)

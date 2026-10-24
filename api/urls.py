@@ -17,6 +17,7 @@ urlpatterns = [
     path("dashboard/", views.dashboard_view, name="api-dashboard"),
     path("featured/", views.featured_view, name="api-featured"),
     path("profile/", views.profile_view, name="api-profile"),
+    path("uploads/blog-image/", views.upload_blog_image_view, name="api-blog-image-upload"),
     path(
         "properties/gallery/<int:pk>/upload/",
         views.upload_property_gallery_view,
