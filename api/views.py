@@ -370,7 +370,7 @@ def profile_view(request):
         request.user.save()
     return Response(serializer.data)
 
-    @api_view(["POST"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
 def upload_blog_image_view(request):
