@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /login.html
-Sitemap: https://realtyhubkerala.com/sitemap.xml
+Sitemap: https://realtyhub.co.in/sitemap.xml
