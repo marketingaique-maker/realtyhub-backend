@@ -1454,3 +1454,38 @@ document.addEventListener('click', function (e) {
   };
   picker.click();
 }, true);
+/* ===== Analytics: Google Analytics 4 + Tag Manager + Microsoft Clarity ===== */
+(function () {
+  if (location.pathname.indexOf('/admin') !== -1) return;
+
+  var GA_ID = 'G-E2Q58GGKYD';
+  var GTM_ID = 'GTM-N73ZSMQ5';
+  var CLARITY_ID = 'z3nylbq9fr';
+
+  // Google Analytics 4
+  var g = document.createElement('script');
+  g.async = true;
+  g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+  document.head.appendChild(g);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID);
+
+  // Google Tag Manager
+  (function (w, d, s, l, i) {
+    w[l] = w[l] || [];
+    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
+    j.async = true;
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i;
+    f.parentNode.insertBefore(j, f);
+  })(window, document, 'script', 'dataLayer', GTM_ID);
+
+  // Microsoft Clarity
+  (function (c, l, a, r, i, t, y) {
+    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+    t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+  })(window, document, 'clarity', 'script', CLARITY_ID);
+})();
